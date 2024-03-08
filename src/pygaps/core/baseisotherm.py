@@ -1,5 +1,7 @@
 """Contains the Isotherm base class."""
 
+# this is a magical comment that we really want to commit even though it does nothing
+
 import typing as t
 
 from pygaps import logger
