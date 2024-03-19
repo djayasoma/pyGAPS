@@ -3,6 +3,7 @@
 from pygaps.units.converter_unit import _MASS_UNITS
 from pygaps.units.converter_unit import _MOLAR_UNITS
 from pygaps.units.converter_unit import _PRESSURE_UNITS
+from pygaps.units.converter_mode import _ISOTHERM_TYPE_MODE
 from pygaps.units.converter_unit import _TEMPERATURE_UNITS
 from pygaps.units.converter_unit import _VOLUME_UNITS
 from pygaps.units.converter_unit import _check_unit
@@ -30,6 +31,12 @@ _MATERIAL_MODE = {
     "molar": _MOLAR_UNITS,
 }
 
+_ISOTHERM_TYPE_MODE = {
+    "total": None, 
+    "excess": None,
+    "net": None,
+}
+
 
 def _check_basis(basis, bases, btype):
     if not basis:
@@ -42,7 +49,6 @@ def _check_basis(basis, bases, btype):
             f"Basis selected for {btype} ({basis}) is not an option. "
             f"Viable options are {list(bases.keys())}"
         )
-
 
 def c_pressure(
     value: float,

@@ -1,7 +1,5 @@
 """Contains the Isotherm base class."""
 
-# this is a magical comment that we really want to commit even though it does nothing
-
 import typing as t
 
 from pygaps import logger
@@ -10,6 +8,7 @@ from pygaps.core.material import Material
 from pygaps.units.converter_mode import _LOADING_MODE
 from pygaps.units.converter_mode import _MATERIAL_MODE
 from pygaps.units.converter_mode import _PRESSURE_MODE
+from pygaps.units.converter_mode import _ISOTHERM_TYPE_MODE
 from pygaps.units.converter_mode import c_temperature
 from pygaps.units.converter_unit import _PRESSURE_UNITS
 from pygaps.units.converter_unit import _TEMPERATURE_UNITS
@@ -79,6 +78,7 @@ class BaseIsotherm():
     ]
     # unit-related attributes and their defaults
     _unit_params = {
+        'isotherm_type_mode': 'excess',
         'pressure_mode': 'absolute',
         'pressure_unit': 'bar',
         'material_basis': 'mass',
@@ -150,7 +150,7 @@ class BaseIsotherm():
                 "Loading basis as 'volume' is unclear and deprecated. "
                 "Assumed as 'volume_gas'."
             )
-
+        self.isotherm_type_mode = properties.pop('isotherm_type_mode')
         self.pressure_mode = properties.pop('pressure_mode')
         self.pressure_unit = properties.pop('pressure_unit')
         if self.pressure_mode.startswith('relative'):
@@ -168,6 +168,12 @@ class BaseIsotherm():
                 f"See viable values: {_PRESSURE_MODE.keys()}"
             )
 
+        if self.isotherm_type_mode not in _ISOTHERM_TYPE_MODE:
+            raise ParameterError(
+                f"Mode selected for isotherm type({self.isotherm_type_mode}) is not an option. "
+                f"See viable values: {_ISOTHERM_TYPE_MODE.keys()}"
+            )
+            
         if self.loading_basis not in _LOADING_MODE:
             raise ParameterError(
                 f"Basis selected for loading ({self.loading_basis}) is not an option. "

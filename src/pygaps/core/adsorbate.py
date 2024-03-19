@@ -1,5 +1,7 @@
 """Contains the adsorbate class."""
 
+# this is another magical comment that is special and we don't want to commit it for some reason
+
 from pygaps import logger
 from pygaps.data import ADSORBATE_LIST
 from pygaps.units.converter_unit import _PRESSURE_UNITS
