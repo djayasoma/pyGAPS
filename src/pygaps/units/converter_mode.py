@@ -10,6 +10,14 @@ from pygaps.units.converter_unit import _check_unit
 from pygaps.units.converter_unit import c_unit
 from pygaps.utilities.exceptions import ParameterError
 
+import pygaps as pg
+import pygaps.parsing as pgp
+import pygaps.graphing as pgg
+from pygaps.core.modelisotherm import ModelIsotherm
+from pygaps.core.pointisotherm import PointIsotherm
+
+from CoolProp.CoolProp import PropsSI
+
 _PRESSURE_MODE = {
     "absolute": _PRESSURE_UNITS,
     "relative": None,
@@ -138,6 +146,207 @@ def c_pressure(
 
     # otherwise no change
     return value
+
+def density(
+    p: float,
+    T: float,
+    adsorbate: str,
+):
+    try:
+        return PropsSI(
+            'D',
+            'T', T,
+            'P|gas', p,
+            adsorbate
+        )
+    except ValueError as e:
+        print(
+            f'Maybe one of your variables is the wrong type?\n'
+            f'p:\t{type(p)}\n'
+            f'T:\t{type(T)}\n'
+            f'adsorbate:\t{type(adsorbate)}'
+        )
+        
+def total_molar(
+    density,
+    excess_loading,
+    total_pore_volume,
+    molar_mass,
+):
+    excess_mass = excess_loading * molar_mass
+    total_mass = excess_mass + (density * total_pore_volume)
+    total_molar = total_mass / molar_mass
+    return total_molar
+
+def totexcess_molar(
+    density,
+    total_loading,
+    total_pore_volume,
+    molar_mass,
+):
+    total_mass = total_loading * molar_mass
+    excess_mass = total_mass - (density * total_pore_volume)
+    excess_molar = excess_mass / molar_mass
+    return excess_molar
+
+def net_molar(
+    density,
+    excess_loading,
+    skeletal_density,
+    molar_mass,
+):
+    excess_mass = excess_loading * molar_mass
+    skeletal_volume = (1/skeletal_density)
+    net_mass = excess_mass - (density * skeletal_volume)
+    net_molar = net_mass / molar_mass
+    return net_molar
+
+def netexcess_molar(
+    density,
+    net_loading,
+    skeletal_density,
+    molar_mass,
+):
+    net_mass = net_loading * molar_mass
+    skeletal_volume = (1/skeletal_density)
+    excess_mass = net_mass + (density * skeletal_volume)
+    excess_molar = excess_mass / molar_mass
+    return excess_molar
+
+def adsorption(
+    isotherm: "ModelIsotherm|PointIsotherm",
+    total_pore_volume: float,
+    skeletal_density: float,
+    mode_from: str,
+    mode_to: str,
+):
+
+    isotherm.convert_loading(basis_to='molar', unit_to='mol')
+    isotherm.convert_material(basis_to='mass', unit_to='kg')
+    isotherm.convert_pressure(mode_to='absolute', unit_to='Pa')
+    isotherm.convert_temperature(unit_to='K')
+
+    adsorbate = isotherm.adsorbate
+    molar_mass = isotherm.adsorbate.molar_mass()
+    initial_loading = list(isotherm.loading())
+    temperature = isotherm.temperature
+    
+    final_loading = []
+    pressure = []
+   
+    for n in initial_loading:
+        p = float(isotherm.pressure_at(n))
+        if (n <= 0 or p<=0):
+            continue
+
+        d = density(
+            p,
+            temperature,
+            str(adsorbate)
+            )
+        if mode_from == 'excess' and mode_to == 'total': #excess to total
+            total = total_molar(
+                d, n,
+                total_pore_volume, molar_mass,)
+            final_loading.append(total)
+            print('total')
+
+        elif mode_from == 'total' and mode_to == 'excess': #total to excess
+             excess = totexcess_molar(
+                 d, n,
+                 total_pore_volume, molar_mass,)
+             final_loading.append(excess)
+             print('excess')
+             
+        elif mode_from == 'net' and mode_to == 'excess': #net to excess
+            excess = netexcess_molar(
+                d, n,
+                skeletal_density, molar_mass,)
+            final_loading.append(excess)
+            print('excess')
+            
+        elif mode_from == 'excess' and mode_to == 'net': #excess to net
+            net = net_molar(
+                d, n,
+                skeletal_density, molar_mass,)
+            final_loading.append(net)
+            print('net')
+
+        elif mode_from == 'total' and mode_to == 'net': #total to net 
+            excess = totexcess_molar(
+                d, n,
+                total_pore_volume, molar_mass,)
+            #return excess_molar
+            excessnet = net_molar(
+                d, excess,
+                skeletal_density, molar_mass,)
+            final_loading.append(excessnet)
+            print('net')
+       
+        elif mode_from == 'net' and mode_to == 'total': 
+            excess = netexcess_molar(
+                d, n,
+                skeletal_density, molar_mass,)
+            excesstot = total_molar(
+                d, excess,
+                total_pore_volume, molar_mass,)
+            final_loading.append(excesstot)
+            print('total')
+        
+        else:
+            print('error')
+        
+        pressure.append(p)
+            
+    ads_isotherm = pg.PointIsotherm(
+        pressure=pressure,
+        loading=final_loading,
+        
+        material=isotherm.material,
+        adsorbate=str(adsorbate),
+
+        temperature=isotherm.temperature,
+        temperature_unit='K',
+
+        pressure_unit='Pa',
+        pressure_mode='absolute',
+        material_unit='kg',
+        material_basis='mass',
+        loading_unit='mol',
+        loading_basis='molar',
+    )
+    return ads_isotherm
+
+
+def c_isotherm_type(
+    isotherm: "ModelIsotherm|PointIsotherm",
+    total_pore_volume: float,
+    skeletal_density: float,
+    mode_from: str,
+    mode_to: str,
+):
+    import matplotlib.pyplot as plt
+    _check_basis(mode_from, _ISOTHERM_TYPE_MODE, 'isotherm_type')
+    _check_basis(mode_to, _ISOTHERM_TYPE_MODE, 'isotherm_type')
+
+    if mode_from != mode_to:
+        isotherm = pgp.isotherm_from_aif('./excess.aif')
+        ads_isotherm = adsorption(isotherm, 1.06, 2.3,mode_from,'total')
+        for iso in [isotherm, ads_isotherm]:
+            iso.convert(
+                pressure_unit='bar',
+                loading_unit='mmol',
+                material_unit='g',
+            )
+        pgp.isotherm_to_aif(ads_isotherm,'result2.aif')
+                  
+        pgg.plot_iso(
+            [isotherm, ads_isotherm]
+            )
+        plt.legend(['1st', '2nd'])
+        plt.show()
+        print(iso)
+        #print(isotherm.data_raw)
 
 
 def c_loading(
