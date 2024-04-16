@@ -97,7 +97,6 @@ class PointIsotherm(BaseIsotherm):
         'p_interpolator',
         'loading_key',
         'pressure_key',
-        'isotherm_type_key'
         'other_keys',
     ]
 

@@ -319,16 +319,16 @@ def c_isotherm_type(
     isotherm: "ModelIsotherm|PointIsotherm",
     total_pore_volume: float,
     skeletal_density: float,
-    mode_from: str,
+    isotherm_type: str,
     mode_to: str,
 ):
     import matplotlib.pyplot as plt
-    _check_basis(mode_from, _ISOTHERM_TYPE_MODE, 'isotherm_type')
+    _check_basis(isotherm_type, _ISOTHERM_TYPE_MODE, 'isotherm_type')
     _check_basis(mode_to, _ISOTHERM_TYPE_MODE, 'isotherm_type')
 
-    if mode_from != mode_to:
+    if isotherm_type != mode_to:
         isotherm = pgp.isotherm_from_aif('./excess.aif')
-        ads_isotherm = adsorption(isotherm, 1.06, 2.3,mode_from, mode_to)
+        ads_isotherm = adsorption(isotherm, total_pore_volume, skeletal_density, isotherm_type, mode_to)
         for iso in [isotherm, ads_isotherm]:
             iso.convert(
                 pressure_unit='bar',
