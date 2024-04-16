@@ -30,7 +30,9 @@ class Material():
     # special reserved parameters
     _reserved_params = [
         "name",
-        "density",
+        "bulk_density",
+        "skeletal_density",
+        "total_pore_volume",
         "molar_mass",
     ]
 
@@ -139,16 +141,40 @@ class Material():
         parameters_dict.update(self.properties)
         return parameters_dict
 
+#BULK
     @property
-    def density(self) -> float:
-        """Material density, in g/cm3 (optional)."""
-        return self.properties.get("density")
+    def bulk_density(self) -> float:
+        """Material bulk density, in g/cm3 (optional)."""
+        return self.properties.get("bulk_density")
 
-    @density.setter
-    def density(self, val: float):
+    @bulk_density.setter
+    def bulk_density(self, val: float):
         if val:
-            self.properties["density"] = float(val)
+            self.properties["bulk_density"] = float(val)
 
+ #SKELETAL   
+    @property
+    def skeletal_density(self) -> float:
+        """Material skeletal density, in g/cm3 (optional)."""
+        return self.properties.get("skeletal_density")
+    
+    @skeletal_density.setter
+    def skeletal_density(self, val: float):
+        if val:
+            self.properties["skeletal_density"] = float(val)
+
+#PORE VOLUME
+    @property
+    def total_pore_volume(self) -> float:
+        """Material total pore volume, in g/cm3 (optional)."""
+        return self.properties.get("total_pore_volume")
+    
+    @total_pore_volume.setter
+    def total_pore_volume(self, val: float):
+        if val:
+            self.properties["total_pore_volume"] = float(val)
+
+#MOLAR MASS
     @property
     def molar_mass(self) -> float:
         """Material molar mass, in g/mol (optional)."""
