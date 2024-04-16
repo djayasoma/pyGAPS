@@ -14,6 +14,7 @@ from pygaps.modelling import is_model_class
 from pygaps.units.converter_mode import c_loading
 from pygaps.units.converter_mode import c_material
 from pygaps.units.converter_mode import c_pressure
+from pygaps.units.converter_mode import c_isotherm_type
 from pygaps.utilities.exceptions import CalculationError
 from pygaps.utilities.exceptions import ParameterError
 
@@ -716,7 +717,7 @@ class ModelIsotherm(BaseIsotherm):
                 if not material_unit:
                     material_unit = self.material_unit
 
-                ret = c_loading(
+                ret = 00c_loading(
                     ret,
                     basis_from=self.loading_basis,
                     basis_to=loading_basis,

@@ -13,6 +13,7 @@ from pygaps.core.baseisotherm import BaseIsotherm
 from pygaps.units.converter_mode import c_loading
 from pygaps.units.converter_mode import c_material
 from pygaps.units.converter_mode import c_pressure
+from pygaps.units.converter_mode import c_isotherm_type
 from pygaps.utilities.exceptions import CalculationError
 from pygaps.utilities.exceptions import ParameterError
 from pygaps.utilities.exceptions import pgError
@@ -96,6 +97,7 @@ class PointIsotherm(BaseIsotherm):
         'p_interpolator',
         'loading_key',
         'pressure_key',
+        'isotherm_type_key'
         'other_keys',
     ]
 
@@ -134,7 +136,8 @@ class PointIsotherm(BaseIsotherm):
 
             # Name of column in the dataframe that contains pressure.
             self.pressure_key = pressure_key
-
+            
+            
             # Pandas DataFrame that stores the data.
             columns = [self.pressure_key, self.loading_key]
             if not all(a in isotherm_data.columns for a in columns):
@@ -161,11 +164,12 @@ class PointIsotherm(BaseIsotherm):
             # Standard column names
             self.pressure_key = 'pressure'
             self.loading_key = 'loading'
+            
 
             # DataFrame creation
             self.data_raw = pandas.DataFrame({
                 self.pressure_key: pressure,
-                self.loading_key: loading
+                self.loading_key: loading,
             })
         else:
             raise ParameterError(
@@ -317,6 +321,7 @@ class PointIsotherm(BaseIsotherm):
         self,
         pressure_mode: str = None,
         pressure_unit: str = None,
+        isotherm_type_mode: str = None,
         loading_basis: str = None,
         loading_unit: str = None,
         material_basis: str = None,
@@ -353,6 +358,12 @@ class PointIsotherm(BaseIsotherm):
                 verbose=verbose,
             )
 
+        if isotherm_type:
+            self.convert_isotherm_type(
+                mode_to=isotherm_type_mode,
+                verbose=verbose,
+            )
+            
         if material_basis or material_unit:
             self.convert_material(
                 basis_to=material_basis,
@@ -429,6 +440,45 @@ class PointIsotherm(BaseIsotherm):
 
         if verbose:
             logger.info(f"Changed pressure to mode '{mode_to}', unit '{unit_to}'.")
+
+
+    def convert_isotherm_type(
+        self,
+        mode_to: str = None,
+        verbose: bool = False,
+    ):
+
+        if not mode_to:
+            mode_to = self.isotherm_type_mode
+
+        if mode_to == self.isotherm_type_mode:
+            if verbose:
+                logger.info("Mode the same, no changes made.")
+            return
+
+        try:
+            self.data_raw[self.isotherm_type_key] = c_isotherm_type(
+                self.data_raw[self.isotherm_type_key],
+                mode_from=self.isotherm_type_mode,
+                mode_to=mode_to,
+                adsorbate=self.adsorbate,
+                temp=self.temperature
+            )
+        except pgError as err:
+            raise CalculationError(
+                f"The isotherm cannot be converted to a {mode_to} basis"
+            ) from err
+
+        if mode_to != self.isotherm_type_mode:
+            self.isotherm_type_mode = mode_to
+        
+
+        # Reset interpolators
+        self.l_interpolator = None
+        self.p_interpolator = None
+
+        if verbose:
+            logger.info(f"Changed isotherm_type to mode '{mode_to}'.")
 
     def convert_loading(
         self,
@@ -632,6 +682,7 @@ class PointIsotherm(BaseIsotherm):
             loading_unit=self.loading_unit,
             pressure_unit=self.pressure_unit,
             pressure_mode=self.pressure_mode,
+            isotherm_type=self.isotherm_type_mode,
         )
         plot_dict.update(plot_iso_args)
 
@@ -837,6 +888,51 @@ class PointIsotherm(BaseIsotherm):
             return ret
         return ret.values
 
+       self,
+        branch: str = None,
+        isotherm_type_mode: str = None,
+        limits: t.Tuple[float, float] = None,
+        indexed: bool = False
+    ) -> t.Union[numpy.ndarray, pandas.Series]:
+
+        ret = self.data(branch=branch).loc[:, self.isotherm_type_key]
+
+        if not ret.empty:
+            # Convert if needed
+            if isotherm_type_mode:
+                if not isotherm_type_mode:
+                    isotherm_type_mode = self.isotherm_type_mode
+                
+                try:
+                    ret = c_isotherm_type(
+                        ret,
+                        isotherm = "ModelIsotherm|PointIsotherm",
+                        total_pore_volume = float,
+                        skeletal_density: float,
+                        mode_from: str,
+                        mode_to: str,
+                        
+                        mode_from=self.isotherm_type_mode,
+                        mode_to=isotherm_type_mode,
+                        adsorbate=self.adsorbate,
+                        temp=self.temperature
+                    )
+                except pgError as err:
+                    raise CalculationError(
+                        f"The isotherm_type cannot be read in a {isotherm_type_mode} basis. "
+                    ) from err
+
+            # Select required points
+            if limits and any(limits):
+                ret = ret.loc[ret.between(
+                    -numpy.inf if limits[0] is None else limits[0],
+                    numpy.inf if limits[1] is None else limits[1]
+                )]
+
+
+        if indexed:
+            return ret
+        return ret.values    
     @property
     def other_keys(self):
         """
@@ -844,7 +940,7 @@ class PointIsotherm(BaseIsotherm):
         """
         return [
             c for c in self.data_raw.columns
-            if c not in (self.pressure_key, self.loading_key, 'branch')
+            if c not in (self.pressure_key,self.isotherm_type_key, self.loading_key, 'branch')
         ]
 
     def other_data(

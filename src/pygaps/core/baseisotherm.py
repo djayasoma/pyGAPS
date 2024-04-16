@@ -486,3 +486,4 @@ class BaseIsotherm():
         """
         from pygaps.utilities.math_utilities import split_ads_data
         return split_ads_data(data, pressure_key)
+    

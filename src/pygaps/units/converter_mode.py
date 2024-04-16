@@ -244,57 +244,54 @@ def adsorption(
             temperature,
             str(adsorbate)
             )
-        if mode_from == 'excess' and mode_to == 'total': #excess to total
-            total = total_molar(
-                d, n,
-                total_pore_volume, molar_mass,)
-            final_loading.append(total)
-            print('total')
-
-        elif mode_from == 'total' and mode_to == 'excess': #total to excess
-             excess = totexcess_molar(
-                 d, n,
-                 total_pore_volume, molar_mass,)
-             final_loading.append(excess)
-             print('excess')
-             
-        elif mode_from == 'net' and mode_to == 'excess': #net to excess
-            excess = netexcess_molar(
-                d, n,
-                skeletal_density, molar_mass,)
-            final_loading.append(excess)
-            print('excess')
-            
-        elif mode_from == 'excess' and mode_to == 'net': #excess to net
-            net = net_molar(
-                d, n,
-                skeletal_density, molar_mass,)
-            final_loading.append(net)
-            print('net')
-
-        elif mode_from == 'total' and mode_to == 'net': #total to net 
-            excess = totexcess_molar(
-                d, n,
-                total_pore_volume, molar_mass,)
-            #return excess_molar
-            excessnet = net_molar(
-                d, excess,
-                skeletal_density, molar_mass,)
-            final_loading.append(excessnet)
-            print('net')
-       
-        elif mode_from == 'net' and mode_to == 'total': 
-            excess = netexcess_molar(
-                d, n,
-                skeletal_density, molar_mass,)
-            excesstot = total_molar(
-                d, excess,
-                total_pore_volume, molar_mass,)
-            final_loading.append(excesstot)
-            print('total')
+        if mode_from == 'excess': #excess to total
+            if mode_to == 'total':
+                total = total_molar(
+                    d, n,
+                    total_pore_volume, molar_mass,)
+                final_loading.append(total)
+                print('total')
+            elif mode_to == 'net':
+                net = net_molar(
+                    d, n,
+                    skeletal_density, molar_mass,)
+                final_loading.append(net)
+                print('net')
         
-        else:
-            print('error')
+        if mode_from == 'total': #excess to total
+            if mode_to == 'excess':
+                excess = totexcess_molar(
+                    d, n,
+                    total_pore_volume, molar_mass,)
+                final_loading.append(excess)
+                print('excess')
+            elif mode_to == 'net':
+                excess = totexcess_molar(
+                    d, n,
+                    total_pore_volume, molar_mass,)
+                #return excess_molar
+                excessnet = net_molar(
+                    d, excess,
+                    skeletal_density, molar_mass,)
+                final_loading.append(excessnet)
+                print('net')
+        
+        if mode_from == 'net': #excess to total
+            if mode_to == 'total':
+                excess = netexcess_molar(
+                    d, n,
+                    skeletal_density, molar_mass,)
+                excesstot = total_molar(
+                    d, excess,
+                    total_pore_volume, molar_mass,)
+                final_loading.append(excesstot)
+                print('total')
+            elif mode_to == 'excess':
+                excess = netexcess_molar(
+                    d, n,
+                    skeletal_density, molar_mass,)
+                final_loading.append(excess)
+                print('excess')
         
         pressure.append(p)
             
@@ -331,7 +328,7 @@ def c_isotherm_type(
 
     if mode_from != mode_to:
         isotherm = pgp.isotherm_from_aif('./excess.aif')
-        ads_isotherm = adsorption(isotherm, 1.06, 2.3,mode_from,'total')
+        ads_isotherm = adsorption(isotherm, 1.06, 2.3,mode_from, mode_to)
         for iso in [isotherm, ads_isotherm]:
             iso.convert(
                 pressure_unit='bar',
@@ -347,7 +344,6 @@ def c_isotherm_type(
         plt.show()
         print(iso)
         #print(isotherm.data_raw)
-
 
 def c_loading(
     value: float,
