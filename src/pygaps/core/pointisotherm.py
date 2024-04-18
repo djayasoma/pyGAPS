@@ -136,7 +136,6 @@ class PointIsotherm(BaseIsotherm):
             # Name of column in the dataframe that contains pressure.
             self.pressure_key = pressure_key
             
-            
             # Pandas DataFrame that stores the data.
             columns = [self.pressure_key, self.loading_key]
             if not all(a in isotherm_data.columns for a in columns):
@@ -456,8 +455,8 @@ class PointIsotherm(BaseIsotherm):
             return
 
         try:
-            self.data_raw[self.isotherm_type_key] = c_isotherm_type(
-                self.data_raw[self.isotherm_type_key],
+            self.data_raw[self.loading_key] = c_isotherm_type(
+                isotherm = self,
                 mode_from=self.isotherm_type_mode,
                 mode_to=mode_to,
                 adsorbate=self.adsorbate,

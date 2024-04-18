@@ -3,7 +3,6 @@
 from pygaps.units.converter_unit import _MASS_UNITS
 from pygaps.units.converter_unit import _MOLAR_UNITS
 from pygaps.units.converter_unit import _PRESSURE_UNITS
-from pygaps.units.converter_mode import _ISOTHERM_TYPE_MODE
 from pygaps.units.converter_unit import _TEMPERATURE_UNITS
 from pygaps.units.converter_unit import _VOLUME_UNITS
 from pygaps.units.converter_unit import _check_unit
