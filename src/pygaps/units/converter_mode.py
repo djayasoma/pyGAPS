@@ -321,12 +321,12 @@ def c_isotherm_type(
     isotherm_type: str,
     mode_to: str,
 ):
-    import matplotlib.pyplot as plt
+    #import matplotlib.pyplot as plt
     _check_basis(isotherm_type, _ISOTHERM_TYPE_MODE, 'isotherm_type')
     _check_basis(mode_to, _ISOTHERM_TYPE_MODE, 'isotherm_type')
 
     if isotherm_type != mode_to:
-        isotherm = pgp.isotherm_from_aif('./excess.aif')
+        #isotherm = pgp.isotherm_from_aif('./excess.aif')
         ads_isotherm = adsorption(isotherm, total_pore_volume, skeletal_density, isotherm_type, mode_to)
         for iso in [isotherm, ads_isotherm]:
             iso.convert(
@@ -334,14 +334,14 @@ def c_isotherm_type(
                 loading_unit='mmol',
                 material_unit='g',
             )
-        pgp.isotherm_to_aif(ads_isotherm,'result2.aif')
+        #pgp.isotherm_to_aif(ads_isotherm,'result2.aif')
                   
-        pgg.plot_iso(
-            [isotherm, ads_isotherm]
-            )
-        plt.legend(['1st', '2nd'])
-        plt.show()
-        print(iso)
+        #pgg.plot_iso(
+        #    [isotherm, ads_isotherm]
+        #    )
+        #plt.legend(['1st', '2nd'])
+        #plt.show()
+        #print(iso)
         #print(isotherm.data_raw)
 
 def c_loading(

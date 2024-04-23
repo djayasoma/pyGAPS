@@ -464,7 +464,7 @@ class PointIsotherm(BaseIsotherm):
             )
         except pgError as err:
             raise CalculationError(
-                f"The isotherm cannot be converted to a {mode_to} basis"
+                f"The isotherm cannot be converted to a '{mode_to}', basis"
             ) from err
 
         if mode_to != self.isotherm_type_mode:
