@@ -456,11 +456,11 @@ class PointIsotherm(BaseIsotherm):
 
         try:
             self.data_raw[self.loading_key] = c_isotherm_type(
-                isotherm = self,
-                mode_from=self.isotherm_type_mode,
-                mode_to=mode_to,
-                adsorbate=self.adsorbate,
-                temp=self.temperature
+                isotherm = self,              
+                total_pore_volume= total_pore_volume,
+                skeletal_density= skeletal_density,
+                isotherm_type= self.isotherm_type_mode,
+                mode_to = mode_to,
             )
         except pgError as err:
             raise CalculationError(
