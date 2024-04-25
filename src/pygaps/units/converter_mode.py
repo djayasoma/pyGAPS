@@ -10,10 +10,10 @@ from pygaps.units.converter_unit import c_unit
 from pygaps.utilities.exceptions import ParameterError
 
 import pygaps as pg
-import pygaps.parsing as pgp
-import pygaps.graphing as pgg
-from pygaps.core.modelisotherm import ModelIsotherm
-from pygaps.core.pointisotherm import PointIsotherm
+#import pygaps.parsing as pgp
+# import pygaps.graphing as pgg
+#from pygaps.core.modelisotherm import ModelIsotherm
+#from pygaps.core.pointisotherm import PointIsotherm
 
 from CoolProp.CoolProp import PropsSI
 
@@ -213,7 +213,7 @@ def netexcess_molar(
     return excess_molar
 
 def adsorption(
-    isotherm: "ModelIsotherm|PointIsotherm",
+    isotherm, #"ModelIsotherm|PointIsotherm",
     total_pore_volume: float,
     skeletal_density: float,
     mode_from: str,
@@ -315,7 +315,7 @@ def adsorption(
 
 
 def c_isotherm_type(
-    isotherm: "ModelIsotherm|PointIsotherm",
+    isotherm, #"ModelIsotherm|PointIsotherm",
     total_pore_volume: float,
     skeletal_density: float,
     isotherm_type: str,

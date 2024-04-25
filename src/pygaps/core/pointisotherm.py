@@ -356,7 +356,7 @@ class PointIsotherm(BaseIsotherm):
                 verbose=verbose,
             )
 
-        if isotherm_type:
+        if isotherm_type_mode:
             self.convert_isotherm_type(
                 mode_to=isotherm_type_mode,
                 verbose=verbose,
@@ -457,8 +457,8 @@ class PointIsotherm(BaseIsotherm):
         try:
             self.data_raw[self.loading_key] = c_isotherm_type(
                 isotherm = self,              
-                total_pore_volume= total_pore_volume,
-                skeletal_density= skeletal_density,
+                total_pore_volume= self.total_pore_volume,
+                skeletal_density= self.skeletal_density,
                 isotherm_type= self.isotherm_type_mode,
                 mode_to = mode_to,
             )
@@ -886,51 +886,6 @@ class PointIsotherm(BaseIsotherm):
             return ret
         return ret.values
 
-       self,
-        branch: str = None,
-        isotherm_type_mode: str = None,
-        limits: t.Tuple[float, float] = None,
-        indexed: bool = False
-    ) -> t.Union[numpy.ndarray, pandas.Series]:
-
-        ret = self.data(branch=branch).loc[:, self.isotherm_type_key]
-
-        if not ret.empty:
-            # Convert if needed
-            if isotherm_type_mode:
-                if not isotherm_type_mode:
-                    isotherm_type_mode = self.isotherm_type_mode
-                
-                try:
-                    ret = c_isotherm_type(
-                        ret,
-                        isotherm = "ModelIsotherm|PointIsotherm",
-                        total_pore_volume = float,
-                        skeletal_density: float,
-                        mode_from: str,
-                        mode_to: str,
-                        
-                        mode_from=self.isotherm_type_mode,
-                        mode_to=isotherm_type_mode,
-                        adsorbate=self.adsorbate,
-                        temp=self.temperature
-                    )
-                except pgError as err:
-                    raise CalculationError(
-                        f"The isotherm_type cannot be read in a {isotherm_type_mode} basis. "
-                    ) from err
-
-            # Select required points
-            if limits and any(limits):
-                ret = ret.loc[ret.between(
-                    -numpy.inf if limits[0] is None else limits[0],
-                    numpy.inf if limits[1] is None else limits[1]
-                )]
-
-
-        if indexed:
-            return ret
-        return ret.values    
     @property
     def other_keys(self):
         """
@@ -938,7 +893,7 @@ class PointIsotherm(BaseIsotherm):
         """
         return [
             c for c in self.data_raw.columns
-            if c not in (self.pressure_key,self.isotherm_type_key, self.loading_key, 'branch')
+            if c not in (self.pressure_key, self.loading_key, 'branch')
         ]
 
     def other_data(
