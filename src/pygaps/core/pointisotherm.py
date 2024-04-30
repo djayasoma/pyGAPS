@@ -455,13 +455,15 @@ class PointIsotherm(BaseIsotherm):
             return
 
         try:
-            self.data_raw[self.loading_key] = c_isotherm_type(
+            new_isotherm = c_isotherm_type(
                 isotherm = self,              
                 total_pore_volume= self.total_pore_volume,
                 skeletal_density= self.skeletal_density,
                 isotherm_type= self.isotherm_type_mode,
                 mode_to = mode_to,
             )
+            return new_isotherm
+        
         except pgError as err:
             raise CalculationError(
                 f"The isotherm cannot be converted to a '{mode_to}', basis"

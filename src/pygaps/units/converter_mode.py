@@ -216,7 +216,7 @@ def adsorption(
     isotherm, #"ModelIsotherm|PointIsotherm",
     total_pore_volume: float,
     skeletal_density: float,
-    mode_from: str,
+    isotherm_type: str,
     mode_to: str,
 ):
 
@@ -243,7 +243,7 @@ def adsorption(
             temperature,
             str(adsorbate)
             )
-        if mode_from == 'excess': #excess to total
+        if isotherm_type == 'excess': #excess to total
             if mode_to == 'total':
                 total = total_molar(
                     d, n,
@@ -255,9 +255,11 @@ def adsorption(
                     d, n,
                     skeletal_density, molar_mass,)
                 final_loading.append(net)
-                print('net')
+                print('-----')
+                print(net)
+                print('-----')
         
-        if mode_from == 'total': #excess to total
+        if isotherm_type == 'total': #excess to total
             if mode_to == 'excess':
                 excess = totexcess_molar(
                     d, n,
@@ -275,7 +277,7 @@ def adsorption(
                 final_loading.append(excessnet)
                 print('net')
         
-        if mode_from == 'net': #excess to total
+        if isotherm_type == 'net': #excess to total
             if mode_to == 'total':
                 excess = netexcess_molar(
                     d, n,
@@ -293,7 +295,9 @@ def adsorption(
                 print('excess')
         
         pressure.append(p)
-            
+#convert_mode    
+
+    print(final_loading)        
     ads_isotherm = pg.PointIsotherm(
         pressure=pressure,
         loading=final_loading,
@@ -327,7 +331,12 @@ def c_isotherm_type(
 
     if isotherm_type != mode_to:
         #isotherm = pgp.isotherm_from_aif('./excess.aif')
+        global ads_isotherm
         ads_isotherm = adsorption(isotherm, total_pore_volume, skeletal_density, isotherm_type, mode_to)
+        return ads_isotherm
+    return isotherm
+
+'''
         for iso in [isotherm, ads_isotherm]:
             iso.convert(
                 pressure_unit='bar',
@@ -343,6 +352,7 @@ def c_isotherm_type(
         #plt.show()
         #print(iso)
         #print(isotherm.data_raw)
+'''
 
 def c_loading(
     value: float,
