@@ -167,15 +167,20 @@ def density(
         )
         
 def total_molar(
-    density,
-    excess_loading,
-    total_pore_volume,
-    molar_mass,
+    density: float,
+    excess_loading: float,
+    total_pore_volume: float,
+    molar_mass: float,
 ):
-    excess_mass = excess_loading * molar_mass
-    total_mass = excess_mass + (density * total_pore_volume)
-    total_molar = total_mass / molar_mass
-    return total_molar
+    print('will it work?')
+    try:
+        print('attempts calculations')
+        excess_mass = excess_loading * molar_mass
+        total_mass = excess_mass + (density * total_pore_volume)
+        total_molar = total_mass / molar_mass
+        return total_molar
+    except TypeError:
+        return None
 
 def totexcess_molar(
     density,
@@ -183,22 +188,28 @@ def totexcess_molar(
     total_pore_volume,
     molar_mass,
 ):
-    total_mass = total_loading * molar_mass
-    excess_mass = total_mass - (density * total_pore_volume)
-    excess_molar = excess_mass / molar_mass
-    return excess_molar
+    try:
+        total_mass = total_loading * molar_mass
+        excess_mass = total_mass - (density * total_pore_volume)
+        excess_molar = excess_mass / molar_mass
+        return excess_molar
+    except TypeError:
+        return None
 
 def net_molar(
-    density,
-    excess_loading,
-    skeletal_density,
-    molar_mass,
+    density: float,
+    excess_loading: float,
+    skeletal_density: float,
+    molar_mass: float,
 ):
-    excess_mass = excess_loading * molar_mass
-    skeletal_volume = (1/skeletal_density)
-    net_mass = excess_mass - (density * skeletal_volume)
-    net_molar = net_mass / molar_mass
-    return net_molar
+    try:
+        excess_mass = excess_loading * molar_mass
+        skeletal_volume = (1/skeletal_density)
+        net_mass = excess_mass - (density * skeletal_volume)
+        net_molar = net_mass / molar_mass
+        return net_molar
+    except TypeError:
+        return None
 
 def netexcess_molar(
     density,
@@ -206,11 +217,14 @@ def netexcess_molar(
     skeletal_density,
     molar_mass,
 ):
-    net_mass = net_loading * molar_mass
-    skeletal_volume = (1/skeletal_density)
-    excess_mass = net_mass + (density * skeletal_volume)
-    excess_molar = excess_mass / molar_mass
-    return excess_molar
+    try:
+        net_mass = net_loading * molar_mass
+        skeletal_volume = (1/skeletal_density)
+        excess_mass = net_mass + (density * skeletal_volume)
+        excess_molar = excess_mass / molar_mass
+        return excess_molar
+    except TypeError:
+        return None
 
 def adsorption(
     isotherm, #"ModelIsotherm|PointIsotherm",
@@ -228,7 +242,10 @@ def adsorption(
     adsorbate = isotherm.adsorbate
     molar_mass = isotherm.adsorbate.molar_mass()
     initial_loading = list(isotherm.loading())
+    #initial_loading = float(initial_loading)
     temperature = isotherm.temperature
+    #print('1')
+    #print(isotherm.loading())
     
     final_loading = []
     pressure = []
@@ -237,7 +254,9 @@ def adsorption(
         p = float(isotherm.pressure_at(n))
         if (n <= 0 or p<=0):
             continue
-
+        #print('2')
+        #print(isotherm.loading())
+        
         d = density(
             p,
             temperature,
@@ -248,16 +267,18 @@ def adsorption(
                 total = total_molar(
                     d, n,
                     total_pore_volume, molar_mass,)
+                #print('3')
+                #print(isotherm.loading())
                 final_loading.append(total)
-                print('total')
+                print(total)
             elif mode_to == 'net':
                 net = net_molar(
                     d, n,
                     skeletal_density, molar_mass,)
                 final_loading.append(net)
-                print('-----')
+                #print('-----')
                 print(net)
-                print('-----')
+                #print('-----')
         
         if isotherm_type == 'total': #excess to total
             if mode_to == 'excess':
@@ -296,7 +317,7 @@ def adsorption(
         
         pressure.append(p)
 #convert_mode    
-
+    #print(initial_loading)
     print(final_loading)        
     ads_isotherm = pg.PointIsotherm(
         pressure=pressure,
